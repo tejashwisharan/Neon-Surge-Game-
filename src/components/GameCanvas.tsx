@@ -301,23 +301,6 @@ const NeonSurge: React.FC<GameCanvasProps> = ({ onGameOver, onScoreUpdate, onLiv
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, width, height);
 
-    // Draw grid
-    ctx.strokeStyle = 'rgba(0, 255, 255, 0.05)';
-    ctx.lineWidth = 1;
-    const gridSize = 50;
-    for (let x = 0; x < width; x += gridSize) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, height);
-      ctx.stroke();
-    }
-    for (let y = 0; y < height; y += gridSize) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(width, y);
-      ctx.stroke();
-    }
-
     // Draw particles
     particlesRef.current.forEach(p => {
       const opacity = 1 - (p.life / p.maxLife);
@@ -343,29 +326,25 @@ const NeonSurge: React.FC<GameCanvasProps> = ({ onGameOver, onScoreUpdate, onLiv
 
     // Draw enemies
     enemiesRef.current.forEach(e => {
+      ctx.save();
+      ctx.translate(e.x, e.y);
+      const angle = Math.atan2(e.vy, e.vx);
+      ctx.rotate(angle);
+
       ctx.shadowBlur = 10;
       ctx.shadowColor = e.color;
       ctx.fillStyle = e.color;
+      
       ctx.beginPath();
-      
-      if (e.type === 'dasher') {
-        // Triangle
-        ctx.moveTo(e.x + e.radius, e.y);
-        ctx.lineTo(e.x - e.radius, e.y - e.radius);
-        ctx.lineTo(e.x - e.radius, e.y + e.radius);
-      } else if (e.type === 'chaser') {
-        // Diamond
-        ctx.moveTo(e.x, e.y - e.radius);
-        ctx.lineTo(e.x + e.radius, e.y);
-        ctx.lineTo(e.x, e.y + e.radius);
-        ctx.lineTo(e.x - e.radius, e.y);
-      } else {
-        // Circle
-        ctx.arc(e.x, e.y, e.radius, 0, Math.PI * 2);
-      }
-      
+      // Arrow/Triangle shape pointing right (translated and rotated)
+      ctx.moveTo(e.radius, 0);
+      ctx.lineTo(-e.radius, -e.radius * 0.8);
+      ctx.lineTo(-e.radius * 0.5, 0);
+      ctx.lineTo(-e.radius, e.radius * 0.8);
       ctx.closePath();
       ctx.fill();
+      
+      ctx.restore();
       ctx.shadowBlur = 0;
     });
 
